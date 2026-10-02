@@ -1,0 +1,50 @@
+{
+  "name": "LiraSnap",
+  "short_name": "LiraSnap",
+  "description": "Skärmklipp, ritning och mått i skala.",
+  "lang": "sv",
+  "start_url": "../",
+  "scope": "../",
+  "display": "standalone",
+  "background_color": "#edf1f0",
+  "theme_color": "#192f35",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "launch_handler": { "client_mode": "navigate-existing" },
+  "shortcuts": [
+    {
+      "name": "Nytt skärmklipp",
+      "short_name": "Skärmklipp",
+      "url": "../?action=capture",
+      "icons": [
+        { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }
+      ]
+    },
+    {
+      "name": "Nytt projekt",
+      "url": "../?action=new-project",
+      "icons": [
+        { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }
+      ]
+    },
+    {
+      "name": "Öppna LiraSnap",
+      "url": "../",
+      "icons": [
+        { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }
+      ]
+    }
+  ]
+}

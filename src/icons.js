@@ -1,0 +1,56 @@
+const paths = {
+  draw: '<path d="m4 17 12-12 3 3-12 12-4 1ZM14 7l3 3"/>',
+  edit: '<path d="M5 5h14v14H5ZM3 3h4v4H3ZM17 17h4v4h-4Z"/>',
+  measure: '<path d="M3 7v10M21 7v10M3 12h18m-14-3-4 3 4 3m10-6 4 3-4 3"/>',
+  image:
+    '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="m3 16 5-5 4 4 4-6 5 7"/>',
+  move: '<path d="M12 3v18M3 12h18m-12-6 3-3 3 3m-6 12 3 3 3-3M6 9l-3 3 3 3m12-6 3 3-3 3"/>',
+  trim: '<path d="M5 3v18M2 8h8m2 0h9M10 3v18m3-5 6-6m-6 0 6 6"/>',
+  extend: '<path d="M19 3v18M3 12h16m-5-4 5 4-5 4"/>',
+  select: '<path d="m5 3 14 10-7 1-3 7Z"/>',
+  line: '<path d="m4 20 16-16"/><rect x="2" y="18" width="4" height="4"/><rect x="18" y="2" width="4" height="4"/>',
+  rect: '<rect x="4" y="5" width="16" height="14" rx="1"/>',
+  circle: '<circle cx="12" cy="12" r="8"/><path d="M12 12h8"/>',
+  freehand: '<path d="M3 17c2-9 4-13 6-12s-4 14 0 14 5-15 8-14-3 13 4 10"/>',
+  dimension: '<path d="M4 5v14M20 5v14M4 12h16m-13-3-3 3 3 3m10-6 3 3-3 3"/>',
+  leader: '<path d="m4 19 8-11h9M4 19l1-6m-1 6 6-2"/>',
+  text: '<path d="M4 6V4h16v2M12 4v16m-4 0h8"/>',
+  scale: '<path d="m3 17 14-14 4 4L7 21Zm4-4 3 3m1-7 3 3m1-7 3 3"/>',
+  crop: '<path d="M6 3v15h15M3 6h15v15"/>',
+  mask: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m6 15 4-6m0 6 4-6m0 6 4-6"/>',
+  highlight: '<path d="m5 16 9-12 6 5-9 12-6-5ZM4 20h7m1-13 6 5"/>',
+  capture:
+    '<path d="M8 4H4v4m12-4h4v4M4 16v4h4m12-4v4h-4"/><rect x="8" y="8" width="8" height="8" rx="1"/>',
+  import:
+    '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8" cy="9" r="1.5"/><path d="m3 17 5-5 4 4 4-7 5 8"/>',
+  undo: '<path d="m8 4-5 5 5 5M3 9h10c8 0 8 11 0 11"/>',
+  redo: '<path d="m16 4 5 5-5 5m5-5H11c-8 0-8 11 0 11"/>',
+  help: '<circle cx="12" cy="12" r="9"/><path d="M9 8a3 3 0 0 1 6 1c0 2-3 2-3 5m0 3h.01"/>',
+  fit: '<path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5M8 8h8v8H8Z"/>',
+  copy: '<rect x="8" y="8" width="12" height="13" rx="2"/><path d="M15 8V3H3v13h5"/>',
+  close: '<path d="m6 6 12 12M6 18 18 6"/>',
+  settings:
+    '<path d="M3 7h18M3 17h18"/><circle cx="8" cy="7" r="3" fill="white"/><circle cx="16" cy="17" r="3" fill="white"/>',
+  download: '<path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/>',
+  pdf: '<path d="M6 3h8l4 4v14H6Zm8 0v5h4M9 12h6m-6 4h6"/>',
+};
+export const icon = (name) =>
+  `<svg viewBox="0 0 24 24" aria-hidden="true">${paths[name] || paths.select}</svg>`;
+export const TOOLS = [
+  ["select", "Markera", "V"],
+  ["move", "Flytta", "G"],
+  ["copy", "Kopiera", "K"],
+  ["trim", "Trimma", "X"],
+  ["extend", "Förläng", "E"],
+  ["line", "Linje", "L"],
+  ["rect", "Rektangel", "R"],
+  ["circle", "Cirkel", "C"],
+  ["freehand", "Frihand", "F"],
+  ["dimension", "Mått", "D"],
+  ["leader", "Leader", "A"],
+  ["text", "Text", "T"],
+  ["scale", "Skala", "S"],
+  ["crop", "Beskär", "B"],
+  ["highlight", "Markera yta", "H"],
+  ["mask", "Maskera", "M"],
+];

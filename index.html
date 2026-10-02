@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#192f35" />
+    <title>LiraSnap — skärmklipp i skala</title>
+    <link rel="icon" href="./public/lira-icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./public/apple-touch-icon.png" />
+    <link rel="manifest" href="./public/manifest.webmanifest" />
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body data-lira-app="snap">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="LiraSnap startsida"
+        ><img src="./public/lira-icon.svg" alt="" /><strong
+          >Lira<span>Snap</span></strong
+        ></a
+      >
+      <div class="header-divider"></div>
+      <button id="project-menu" class="project-label" title="Byt projektnamn">
+        <span id="project-name">Namnlöst projekt</span
+        ><span class="project-dot"></span>
+      </button>
+      <div class="history">
+        <button
+          data-action="undo"
+          title="Ångra (⌘/Ctrl Z)"
+          aria-label="Ångra"
+        ></button
+        ><button
+          data-action="redo"
+          title="Gör om (⌘/Ctrl Shift Z)"
+          aria-label="Gör om"
+        ></button>
+      </div>
+      <div class="header-spacer"></div>
+      <button id="install-app" class="header-button" hidden>Installera</button>
+      <button
+        id="update-app"
+        class="header-button"
+        title="En ny version är hämtad och klar att installeras"
+        hidden
+      >
+        Uppdatera appen
+      </button>
+      <button data-action="new" class="header-button" title="Nytt projekt">
+        Nytt
+      </button>
+      <button
+        data-action="open"
+        class="header-button"
+        title="Öppna ett sparat LiraSnap-projekt"
+      >
+        Öppna</button
+      ><button data-action="save" class="header-button">Spara projekt</button
+      ><button
+        data-action="help"
+        class="icon-only"
+        aria-label="Hjälp"
+        title="Hjälp och kortkommandon"
+      ></button>
+      <div class="header-divider"></div>
+      <button data-action="import" class="header-button with-icon"></button
+      ><button data-action="capture" class="primary with-icon"></button>
+    </header>
+    <main id="workspace" aria-label="Arbetsyta med skärmklipp">
+      <div id="board"></div>
+      <section id="welcome" class="welcome">
+        <div class="welcome-mark">
+          <img src="./public/lira-icon.svg" alt="" />
+        </div>
+        <p class="eyebrow">FRÅN SKÄRMKLIPP TILL IDÉ</p>
+        <h1>Klipp. Rita. Dela.</h1>
+        <p class="welcome-description">
+          Fånga det du ser. Sätt en skala och rita direkt på bilden.<br />Samla
+          flera klipp på samma arbetsyta.
+        </p>
+        <div class="welcome-actions">
+          <button data-action="capture" class="primary with-icon">
+            Nytt skärmklipp</button
+          ><button data-action="import" class="secondary with-icon">
+            Öppna bild
+          </button>
+        </div>
+        <p class="paste-hint">
+          eller klistra in med <kbd>⌘ / Ctrl</kbd> <kbd>V</kbd>
+        </p>
+        <div class="welcome-steps">
+          <div>
+            <span>01</span><strong>Fånga ett område</strong>
+            <p>Skärm, fönster eller egen bild</p>
+          </div>
+          <div>
+            <span>02</span><strong>Ange en känd längd</strong>
+            <p>Två punkter ger din skala</p>
+          </div>
+          <div>
+            <span>03</span><strong>Rita och kopiera</strong>
+            <p>Mått, linjer och kommentarer</p>
+          </div>
+        </div>
+        <button data-action="example" class="example-link">
+          Prova med en exempelritning <span>↗</span>
+        </button>
+      </section>
+      <aside id="rail" class="lira-rail" aria-label="Ritverktyg">
+        <div id="rail-handle" title="Dra för att flytta verktygsfältet">
+          <span>⠿</span
+          ><button
+            id="collapse-rail"
+            aria-label="Fäll ihop verktygsfältet"
+            title="Fäll ihop"
+          >
+            ‹
+          </button>
+        </div>
+        <div id="tools"></div>
+      </aside>
+      <aside
+        id="tool-flyout"
+        class="tool-flyout"
+        aria-label="Verktyg"
+        hidden
+      ></aside>
+      <section
+        id="tool-options"
+        class="tool-options"
+        aria-label="Verktygsinställningar"
+      >
+        <span id="tool-title">Markera</span><span class="option-divider"></span>
+        <label title="Linjefärg"
+          ><input
+            id="color"
+            type="color"
+            value="#147b60"
+            aria-label="Linjefärg"
+        /></label>
+        <label class="compact-label"
+          >Linje
+          <select id="line-width" aria-label="Linjetjocklek">
+            <option value="2">2 px</option>
+            <option value="3" selected>3 px</option>
+            <option value="5">5 px</option>
+            <option value="8">8 px</option>
+          </select></label
+        >
+        <label class="compact-label"
+          >Text
+          <select id="font-size" aria-label="Textstorlek">
+            <option>16</option>
+            <option selected>22</option>
+            <option>30</option>
+            <option>42</option>
+          </select></label
+        >
+        <label id="length-option" class="compact-label"
+          >Längd
+          <input
+            id="exact-length"
+            type="number"
+            min="0"
+            step="any"
+            placeholder="Fri"
+            aria-label="Exakt längd"
+          /><span id="length-unit">mm</span></label
+        >
+      </section>
+      <aside
+        id="inspector"
+        class="inspector"
+        hidden
+        aria-label="Egenskaper"
+      ></aside>
+      <div id="clip-tray" class="clip-tray" hidden>
+        <span class="tray-label">SKÄRMKLIPP</span>
+        <div id="clip-list"></div>
+        <button
+          data-action="import"
+          class="tray-add"
+          title="Lägg till bild"
+          aria-label="Lägg till bild"
+        >
+          +
+        </button>
+      </div>
+      <div class="view-controls">
+        <button data-action="zoom-out" aria-label="Zooma ut">−</button
+        ><button
+          data-action="zoom-reset"
+          id="zoom-label"
+          title="Återställ zoom"
+        >
+          100%</button
+        ><button data-action="zoom-in" aria-label="Zooma in">+</button
+        ><span></span
+        ><button
+          data-action="fit"
+          title="Visa alla skärmklipp"
+          aria-label="Visa alla"
+        ></button>
+      </div>
+      <div id="drop-zone" hidden>
+        Släpp bilder här
+        <div>PNG, JPG eller WebP · flera bilder går bra</div>
+      </div>
+    </main>
+    <footer class="statusbar">
+      <span class="status-indicator"></span
+      ><span id="status">Redo · lägg till ett skärmklipp för att börja</span
+      ><span id="save-status">Sparas lokalt</span>
+      <div class="footer-spacer"></div>
+      <button
+        id="snap-toggle"
+        aria-pressed="true"
+        title="Snäpp till ändpunkt, mittpunkt och skärning (F3)"
+      >
+        OSNAP</button
+      ><button
+        id="polar-toggle"
+        aria-pressed="true"
+        title="Rita i fasta vinklar (F10)"
+      >
+        POLAR <span>45°</span></button
+      ><button
+        id="track-toggle"
+        aria-pressed="true"
+        title="Hovra 400 ms för att fånga en referens (F11)"
+      >
+        OTRACK</button
+      ><span class="footer-divider"></span
+      ><button id="export-menu" class="export-button">
+        Kopiera / exportera <span>↗</span>
+      </button>
+    </footer>
+    <input
+      id="image-input"
+      type="file"
+      accept="image/png,image/jpeg,image/webp,image/gif"
+      multiple
+      hidden
+    /><input id="project-input" type="file" accept=".lirasnap,.json" hidden />
+    <dialog id="form-dialog">
+      <form method="dialog">
+        <div class="dialog-heading">
+          <h2 id="dialog-title"></h2>
+          <button value="cancel" class="dialog-close" aria-label="Stäng">
+            ×
+          </button>
+        </div>
+        <p id="dialog-description"></p>
+        <div id="dialog-fields"></div>
+        <div class="dialog-actions">
+          <button value="cancel" class="secondary">Avbryt</button
+          ><button id="dialog-submit" value="confirm" class="primary">
+            Spara
+          </button>
+        </div>
+      </form>
+    </dialog>
+    <dialog
+      id="capture-launch"
+      class="capture-launch"
+      aria-label="Nytt skärmklipp"
+    >
+      <button
+        id="capture-launch-close"
+        class="dialog-close"
+        aria-label="Avbryt"
+      >
+        ×
+      </button>
+      <button id="capture-launch-start" class="primary with-icon">
+        Nytt skärmklipp
+      </button>
+    </dialog>
+    <dialog id="capture-dialog" aria-label="Markera skärmklipp">
+      <button
+        id="capture-close"
+        aria-label="Avbryt skärmklipp"
+        title="Avbryt (Esc)"
+      >
+        ×
+      </button>
+      <div id="capture-stage">
+        <canvas
+          id="capture-canvas"
+          aria-label="Dra en rektangel för att fånga ett område"
+        ></canvas>
+        <div id="capture-selection" hidden></div>
+      </div>
+    </dialog>
+    <dialog id="help-dialog">
+      <div class="dialog-heading">
+        <h2>En liten verkstad för dina skärmklipp</h2>
+        <button
+          class="dialog-close"
+          data-action="close-help"
+          aria-label="Stäng"
+        >
+          ×
+        </button>
+      </div>
+      <p>
+        Ta ett skärmklipp, klistra in en bild eller dra in flera bilder. Dra
+        kortens rubrik för att flytta dem. Arbetsytan sparas automatiskt i den
+        här webbläsaren.
+      </p>
+      <div class="help-grid">
+        <strong>Sätt skala</strong
+        ><span
+          >Välj Skala, klicka två punkter och ange deras verkliga avstånd.</span
+        ><strong>Rita</strong
+        ><span
+          >Klicka startpunkt och slutpunkt. För mått: klicka två referenspunkter
+          och sedan där måttet ska placeras. Leader: klicka pilspets och
+          textplacering. Frihand: håll ned och rita.</span
+        ><strong>Exakt längd</strong
+        ><span
+          >Ange längden i verktygsfältet, klicka startpunkten och klicka i
+          önskad riktning. Kräver kalibrerad skala.</span
+        ><strong>Redigera</strong
+        ><span
+          >Markera objekt med klick eller två hörn. Shift lägger till.
+          Flytta/Kopiera: klicka baspunkt och destination; Enter avslutar
+          objektvalet om verktyget startas först. Dra i handtagen eller ändra
+          dess egenskaper.</span
+        ><strong>Navigera</strong
+        ><span
+          >Rulla för att panorera, ⌘/Ctrl + rullhjul för att zooma. Mellanslag +
+          dra flyttar arbetsytan.</span
+        ><strong>Kortkommandon</strong
+        ><span
+          >V markera · L linje · R rektangel · C cirkel · F frihand · D mått · A
+          leader · T text · S skala · B beskär · Esc avbryt · Delete ta bort ·
+          ⌘/Ctrl Z ångra · ⌘/Ctrl C kopiera aktivt klipp.</span
+        ><strong>Dela</strong
+        ><span
+          >Kopiera eller exportera aktivt klipp, eller hela samlingen. PNG kan
+          klistras in i mejl. PDF kan öppnas i LiraPDFWeb.</span
+        >
+      </div>
+      <p class="help-note">
+        Skalan gäller bilder med enhetlig skala. Fotografier med perspektiv
+        kräver särskild hänsyn. Skärmklipp och urklipp kräver webbläsarstöd och
+        tillstånd.
+      </p>
+    </dialog>
+    <div id="toast" role="status" aria-live="polite" hidden></div>
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>
