@@ -1451,6 +1451,9 @@ async function captureScreen() {
     video.muted = true;
     video.srcObject = stream;
     await video.play();
+    // The first frames can still contain the OS screen picker as it closes.
+    // Let its dismissal finish, then capture a newly presented frame.
+    await new Promise((resolve) => setTimeout(resolve, 800));
     if (video.requestVideoFrameCallback)
       await new Promise((resolve, reject) => {
         const timeout = setTimeout(

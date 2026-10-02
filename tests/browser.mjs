@@ -114,7 +114,10 @@ try {
       .first()
       .locator('[data-snap-marker="snäpp"]');
     await marker.waitFor();
-    const box = await marker.boundingBox();
+    const box = await marker.evaluate((element) => {
+      const { x, y, width, height } = element.getBoundingClientRect();
+      return { x, y, width, height };
+    });
     assert.ok(Math.abs(box.x + box.width / 2 - first.x) < 1);
     assert.ok(Math.abs(box.y + box.height / 2 - first.y) < 1);
     await page.mouse.click(first.x + 2, first.y + 2);
@@ -338,13 +341,18 @@ try {
     canvas.width = 640;
     canvas.height = 480;
     const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#147b60";
+    ctx.fillStyle = "#ff0000";
     ctx.fillRect(0, 0, 640, 480);
     Object.defineProperty(navigator.mediaDevices, "getDisplayMedia", {
       value: async (options) => {
         window.__captureOptions = options;
         const stream = canvas.captureStream(15);
         window.__captureStream = stream;
+        // Simulate the native picker lingering in the initial frames.
+        setTimeout(() => {
+          ctx.fillStyle = "#147b60";
+          ctx.fillRect(0, 0, 640, 480);
+        }, 350);
         let i = 0;
         window.__captureTimer = setInterval(() => {
           ctx.fillRect(i++ % 100, 0, 1, 1);
@@ -356,6 +364,15 @@ try {
   });
   await page.locator("header [data-action=capture]").click();
   await page.locator("#capture-dialog[open]").waitFor();
+  assert.deepEqual(
+    await page.evaluate(() => [
+      ...document
+        .querySelector("#capture-canvas")
+        .getContext("2d")
+        .getImageData(320, 240, 1, 1).data,
+    ]),
+    [20, 123, 96, 255],
+  );
   assert.equal(
     await page.evaluate(() => window.__captureStream.getTracks()[0].readyState),
     "ended",
