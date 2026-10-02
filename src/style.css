@@ -679,6 +679,8 @@ kbd {
   right: 20px;
   top: 20px;
   width: 215px;
+  max-height: calc(100% - 120px);
+  overflow-y: auto;
   background: #ffffffed;
   backdrop-filter: blur(8px);
   border: 1px solid var(--border);
@@ -713,6 +715,10 @@ kbd {
 .inspector textarea {
   resize: vertical;
   min-height: 60px;
+}
+.inspector input[type="color"] {
+  height: 32px;
+  padding: 3px;
 }
 .inspector .row {
   display: flex;

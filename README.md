@@ -30,6 +30,8 @@ Efter första besöket cachas appen för offlinebruk. Bilder och projekt autospa
 
 Vänstermenyn visar Markera och kategorierna Rita, Ändra, Mått och Bild. Hovra över en kategori för att visa verktygen; klick och tangentbordsfokus fungerar också. Menyn kan flyttas med greppet högst upp och fällas ihop med pilen.
 
+Alla ritinställningar och objektegenskaper finns i en enda egenskapspanel till höger. Med ett ritverktyg aktivt ställer du in nya objekts färg, linjetjocklek, textstorlek och eventuell exakt längd. När objekt markeras visar samma panel deras egenskaper. Ändrad färg och linjetjocklek gäller hela markeringen; textstorlek gäller markerade texter, leaders och mått. Olika befintliga värden visas som **Blandat** och lämnas kvar tills ett nytt värde anges. En gemensam ändring kan ångras i ett steg.
+
 ### Markera och ändra
 
 Markera med klick på ett objekt eller klick–klick på två hörn i en tom del av bilden. Vänster till höger (blå ruta) väljer objekt helt innanför; höger till vänster (grön streckad ruta) tar också objekt som korsar rutan. Shift lägger till objekt och fönster i markeringen; Shift-klick på ett markerat objekt tar bort det.

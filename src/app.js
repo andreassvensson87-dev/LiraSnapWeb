@@ -56,6 +56,21 @@ let undoStack = [],
 const getClip = (id) => project.clips.find((c) => c.id === (id || activeId));
 const getObject = () => getClip()?.objects.find((o) => o.id === selectedId);
 const clone = (value) => structuredClone(value);
+const drawingStyle = { color: "#147b60", width: 3, fontSize: 22 };
+let exactLength = 0;
+const textObject = (o) => ["text", "leader", "dimension"].includes(o.type);
+const drawingTool = () =>
+  [
+    "line",
+    "rect",
+    "circle",
+    "freehand",
+    "dimension",
+    "leader",
+    "text",
+    "highlight",
+    "mask",
+  ].includes(tool);
 let selectedIds = new Set(),
   selectionClipId = null,
   boxPending = null,
@@ -130,6 +145,10 @@ function activate(id, objectId = null) {
 function chooseTool(next) {
   cancelGesture();
   tool = next;
+  if (drawingTool()) {
+    clearSelection();
+    showClipProperties = false;
+  }
   closeMenu();
   closeToolMenu();
   if (["move", "copy"].includes(next))
@@ -202,18 +221,6 @@ function render() {
     })
     .join("");
   renderToolMenu(tool);
-  $("#tool-title").textContent = TOOLS.find((t) => t[0] === tool)[1];
-  $("#length-option").hidden = ![
-    "line",
-    "dimension",
-    "leader",
-    "circle",
-  ].includes(tool);
-  $("#length-unit").textContent = getClip()?.scale?.unit || "mm";
-  $("#exact-length").disabled = !getClip()?.scale;
-  $("#exact-length").title = getClip()?.scale
-    ? "Längd i klippets enhet"
-    : "Ange skala för att rita med exakt längd";
   $("#zoom-label").textContent = `${Math.round(view.zoom * 100)}%`;
   $("#clip-tray").hidden = !project.clips.length;
   $("#clip-list").innerHTML = project.clips
@@ -243,20 +250,36 @@ function renderInspector() {
     c = getClip(),
     o = getObject();
   const selection = selectedObjects(c);
-  if (selection.length > 1) {
+  if (!selection.length && !showClipProperties && drawingTool()) {
     panel.hidden = false;
-    panel.innerHTML = `<button class="inspector-close" data-inspector-action="close" aria-label="Stäng egenskaper">×</button><h3>${selection.length} objekt markerade</h3><p>Flytta eller kopiera markeringen med en baspunkt och en destination.</p><div class="row"><button data-tool="move">Flytta</button><button data-tool="copy">Kopiera</button></div><div class="row" style="margin-top:8px"><button data-inspector-action="duplicate">Duplicera</button><button data-inspector-action="delete" class="danger">Ta bort</button></div>`;
+    panel.innerHTML = `<button class="inspector-close" data-inspector-action="close" aria-label="Stäng egenskaper">×</button><h3>${TOOLS.find((t) => t[0] === tool)[1]}</h3><p>Inställningar för nya objekt</p>
+    <div class="row"><label>Färg<input type="color" data-default="color" value="${drawingStyle.color}"></label><label>Linjetjocklek<input type="number" min="1" max="100" data-default="width" value="${drawingStyle.width}"></label></div>
+    ${["text", "leader", "dimension"].includes(tool) ? `<label>Textstorlek<input type="number" min="8" max="200" data-default="fontSize" value="${drawingStyle.fontSize}"></label>` : ""}
+    ${["line", "dimension", "leader", "circle"].includes(tool) ? `<label>${tool === "circle" ? "Exakt radie" : "Exakt längd"} (${c?.scale?.unit || "mm"})<input id="exact-length" type="number" min="0" step="any" placeholder="Fri" value="${exactLength || ""}" ${c?.scale ? "" : "disabled"} title="${c?.scale ? "Längd i klippets enhet" : "Ange skala för att rita med exakt längd"}"></label>` : ""}`;
     return;
   }
   panel.hidden = !o && !showClipProperties;
   if (panel.hidden) return;
   if (o) {
-    const label = TOOLS.find((t) => t[0] === o.type)?.[1] || "Objekt";
+    const multiple = selection.length > 1;
+    const label = multiple
+      ? `${selection.length} objekt markerade`
+      : TOOLS.find((t) => t[0] === o.type)?.[1] || "Objekt";
+    const common = (objects, key) =>
+      objects.every((item) => item[key] === objects[0][key])
+        ? objects[0][key]
+        : "";
+    const color = common(selection, "color"),
+      width = common(selection, "width");
+    const texts = selection.filter(textObject),
+      fontSize = texts.length ? common(texts, "fontSize") : "";
     panel.innerHTML = `<button class="inspector-close" data-inspector-action="close" aria-label="Stäng egenskaper">×</button><h3>${label}</h3>
-  ${["text", "leader"].includes(o.type) ? `<label>Text<textarea data-property="text">${esc(o.text)}</textarea></label>` : ""}
-  <div class="row"><label>Färg<input type="color" data-property="color" value="${o.color}"></label><label>Linjebredd<input type="number" min="1" max="100" data-property="width" value="${o.width}"></label></div>
-  ${["text", "leader", "dimension"].includes(o.type) ? `<label>Textstorlek<input type="number" min="8" max="200" data-property="fontSize" value="${o.fontSize}"></label>` : ""}
-  ${["line", "dimension", "leader", "circle"].includes(o.type) ? `<label>${o.type === "circle" ? "Radie" : "Längd"} (${c.scale?.unit || "px"})<input type="number" min="0.001" step="any" data-property="length" value="${Number((distance(o.a, o.b) * (c.scale ? c.scale.mmPerPixel / UNITS[c.scale.unit] : 1)).toFixed(3))}"></label>` : ""}
+  ${multiple ? "<p>Ändringar gäller hela markeringen.</p>" : ""}
+  ${!multiple && ["text", "leader"].includes(o.type) ? `<label>Text<textarea data-property="text">${esc(o.text)}</textarea></label>` : ""}
+  <div class="row"><label>Färg${color ? "" : "<small>Blandat</small>"}<input type="color" data-property="color" value="${color || o.color}" aria-label="Färg för markeringen"></label><label>Linjetjocklek<input type="number" min="1" max="100" data-property="width" value="${width}" placeholder="Blandat"></label></div>
+  ${texts.length ? `<label>Textstorlek<input type="number" min="8" max="200" data-property="fontSize" value="${fontSize}" placeholder="Blandat"></label>` : ""}
+  ${!multiple && ["line", "dimension", "leader", "circle"].includes(o.type) ? `<label>${o.type === "circle" ? "Radie" : "Längd"} (${c.scale?.unit || "px"})<input type="number" min="0.001" step="any" data-property="length" value="${Number((distance(o.a, o.b) * (c.scale ? c.scale.mmPerPixel / UNITS[c.scale.unit] : 1)).toFixed(3))}"></label>` : ""}
+  ${multiple ? `<div class="row"><button data-tool="move">Flytta</button><button data-tool="copy">Kopiera</button></div>` : ""}
   ${o.type === "mask" ? "<p>Maskeringen bakas in i PNG/PDF. Den redigerbara projektfilen behåller originalbilden.</p>" : ""}<div class="row"><button data-inspector-action="duplicate">Duplicera</button><button data-inspector-action="delete" class="danger">Ta bort</button></div>`;
   } else {
     panel.innerHTML = `<button class="inspector-close" data-inspector-action="close" aria-label="Stäng egenskaper">×</button><h3>Skärmklipp</h3><label>Namn<input data-clip-property="name" value="${esc(c.name)}" maxlength="100"></label><div class="row"><label>Enhet<select data-clip-property="unit">${Object.keys(
@@ -336,7 +359,7 @@ function constrained(event, c, start, exact = false, exclude = null) {
         polar: aids.polar || event.shiftKey,
       },
       ((8 / view.zoom) * c.crop.w) / c.width,
-      exact ? Number($("#exact-length").value) || 0 : 0,
+      exact ? exactLength : 0,
       exclude,
     );
   let snapping = resolve();
@@ -428,9 +451,9 @@ function styleObject(type, a, b) {
     type,
     a: { ...a },
     b: { ...b },
-    color: type === "mask" ? "#263d43" : $("#color").value,
-    width: Number($("#line-width").value),
-    fontSize: Number($("#font-size").value),
+    color: type === "mask" ? "#263d43" : drawingStyle.color,
+    width: drawingStyle.width,
+    fontSize: drawingStyle.fontSize,
     ...(type === "freehand" ? { points: [{ ...a }] } : {}),
     ...(type === "dimension" ? { offset: 30 } : {}),
     ...(["text", "leader"].includes(type) ? { text: "" } : {}),
@@ -1182,6 +1205,25 @@ function duplicateClip() {
   changed();
 }
 $("#inspector").addEventListener("change", (event) => {
+  if (event.target.id === "exact-length") {
+    exactLength = Math.max(0, Number(event.target.value) || 0);
+    return;
+  }
+  const defaultProperty = event.target.dataset.default;
+  if (defaultProperty) {
+    const value =
+      defaultProperty === "color"
+        ? event.target.value
+        : Number(event.target.value);
+    if (defaultProperty === "color") drawingStyle.color = value;
+    else if (Number.isFinite(value) && value > 0)
+      drawingStyle[defaultProperty] =
+        defaultProperty === "width"
+          ? Math.max(1, Math.min(100, value))
+          : Math.max(8, Math.min(200, value));
+    renderInspector();
+    return;
+  }
   const c = getClip(),
     o = getObject();
   if (!c) return;
@@ -1207,7 +1249,13 @@ $("#inspector").addEventListener("change", (event) => {
         x: o.a.x + Math.cos(angle) * len,
         y: o.a.y + Math.sin(angle) * len,
       };
-    } else o[property] = value;
+    } else {
+      const targets =
+        property === "fontSize"
+          ? selectedObjects(c).filter(textObject)
+          : selectedObjects(c);
+      for (const item of targets) item[property] = value;
+    }
     changed();
   }
   if (clipProperty) {
@@ -1234,12 +1282,14 @@ $("#inspector").addEventListener("click", (event) => {
   const action = event.target.closest("[data-inspector-action]")?.dataset
       .inspectorAction,
     c = getClip();
-  if (!action || !c) return;
+  if (!action) return;
   if (action === "close") {
     showClipProperties = false;
     clearSelection();
-    render();
+    chooseTool("select");
+    return;
   }
+  if (!c) return;
   if (action === "delete" || action === "delete-clip") deleteSelected();
   if (action === "duplicate") duplicateObject();
   if (action === "duplicate-clip") duplicateClip();

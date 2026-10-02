@@ -31,7 +31,7 @@ try {
       a,
       b,
       color: "#147b60",
-      width: 3,
+      width: id === "two" ? 5 : 3,
       fontSize: 22,
     });
     return {
@@ -127,6 +127,44 @@ try {
   );
   await page.locator("[data-category=edit]").hover();
   await page.screenshot({ path: "test-results/edit-menu.png" });
+  assert.equal(await page.locator("#tool-options").count(), 0);
+  const widthField = page.locator("#inspector [data-property=width]");
+  assert.equal(await widthField.inputValue(), "");
+  assert.equal(await widthField.getAttribute("placeholder"), "Blandat");
+  await widthField.fill("9");
+  await widthField.blur();
+  await settled();
+  const afterWidth = (await store()).clips[0].objects;
+  assert.equal(afterWidth.find((o) => o.id === "one").width, 9);
+  assert.equal(afterWidth.find((o) => o.id === "two").width, 9);
+  assert.equal(afterWidth.find((o) => o.id === "cross").width, 3);
+  assert.equal(await widthField.inputValue(), "9");
+  await page.locator("#inspector [data-property=color]").fill("#ee3344");
+  await page.locator("#inspector [data-property=color]").blur();
+  await settled();
+  assert.equal(
+    (await store()).clips[0].objects.find((o) => o.id === "one").color,
+    "#ee3344",
+  );
+  assert.equal(
+    (await store()).clips[0].objects.find((o) => o.id === "two").color,
+    "#ee3344",
+  );
+  await page.locator("[data-action=undo]").click();
+  await settled();
+  await page.locator("[data-action=undo]").click();
+  await settled();
+  assert.equal(
+    (await store()).clips[0].objects.find((o) => o.id === "one").width,
+    3,
+  );
+  assert.equal(
+    (await store()).clips[0].objects.find((o) => o.id === "two").width,
+    5,
+  );
+  // Undo clears selection, so select the same pair again before Move.
+  await click(90, 90);
+  await click(170, 140);
   await choose("move");
   await click(100, 100);
   await click(120, 160);
@@ -241,9 +279,54 @@ try {
     (await store()).clips[0].objects,
     beforeEscape.clips[0].objects,
   );
+  // The same panel controls new objects without changing existing ones.
+  await page.keyboard.press("l");
+  await page.locator("#inspector [data-default=width]").fill("7");
+  await page.locator("#inspector [data-default=width]").blur();
+  assert.deepEqual(
+    (await store()).clips[0].objects,
+    beforeEscape.clips[0].objects,
+  );
+  await click(400, 50);
+  await click(450, 50);
+  await settled();
+  assert.equal((await store()).clips[0].objects.at(-1).width, 7);
+  await page.keyboard.press("Escape");
+  // A mixed selection changes text size only on text-bearing objects.
+  const mixedFixture = structuredClone(fixture);
+  Object.assign(mixedFixture.clips[0].objects[0], {
+    type: "text",
+    text: "Hej",
+  });
+  Object.assign(mixedFixture.clips[0].objects[1], {
+    type: "leader",
+    text: "Två",
+    fontSize: 30,
+  });
+  await page.locator("#project-input").setInputFiles({
+    name: "mixed.lirasnap",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(mixedFixture)),
+  });
+  await page.locator("#form-dialog[open] #dialog-submit").click();
+  await page.waitForFunction(
+    () => document.querySelector("svg.drawing text")?.textContent === "Hej",
+  );
+  await choose("select");
+  await click(30, 50);
+  await click(280, 155);
+  const fontField = page.locator("#inspector [data-property=fontSize]");
+  assert.equal(await fontField.inputValue(), "");
+  await fontField.fill("24");
+  await fontField.blur();
+  await settled();
+  const mixedObjects = (await store()).clips[0].objects;
+  assert.equal(mixedObjects.find((o) => o.id === "one").fontSize, 24);
+  assert.equal(mixedObjects.find((o) => o.id === "two").fontSize, 24);
+  assert.equal(mixedObjects.find((o) => o.id === "cross").fontSize, 22);
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: category hover, window/crossing selection, multi-object Move, repeated Copy, Trim/Extend, undo, command selection and cancellation.",
+    "PASS: category hover, window/crossing selection, bulk style and undo, drawing defaults, mixed text sizes, Move/Copy, Trim/Extend and Escape.",
   );
 } finally {
   await browser.close();
