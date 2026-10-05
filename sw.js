@@ -1,4 +1,4 @@
-const VERSION="74493011f08cfd87";
+const VERSION="7ff8e5a9a493d67c";
 const FILES=["index.html","src/app.js","src/core.js","src/editing.js","src/export.js","src/icons.js","src/pwa.js","src/render.js","src/storage.js","src/style.css","src/tool-menu.js","src/tracking.js","public/apple-touch-icon.png","public/favicon-32.png","public/icon-192.png","public/icon-512.png","public/lira-icon.svg","public/manifest.webmanifest"];
 const PREFIX='lirasnap-'+encodeURIComponent(self.registration.scope)+'-';
 const CACHE=PREFIX+VERSION;

@@ -97,6 +97,24 @@ try {
   };
   await settled();
   assert.equal((await store()).clips.length, 2);
+  // A card's close button removes that whole card and Undo restores it.
+  const beforeClose = await store();
+  await page
+    .locator(".clip")
+    .first()
+    .locator("[data-card-action=properties]")
+    .click();
+  await page.keyboard.press("Escape");
+  await page
+    .locator(".clip")
+    .nth(1)
+    .locator("[data-card-action=delete]")
+    .click();
+  await settled();
+  assert.deepEqual((await store()).clips, [beforeClose.clips[0]]);
+  await page.locator("[data-action=undo]").click();
+  await settled();
+  assert.deepEqual((await store()).clips, beforeClose.clips);
   // First-point snapping is visible before clicking, and the saved start remains marked.
   for (const name of [
     "line",

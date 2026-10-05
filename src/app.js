@@ -215,7 +215,7 @@ function render() {
     .map((c, index) => {
       const active = c.id === activeId;
       return `<article class="clip ${active ? "active" : ""}" data-clip="${esc(c.id)}" style="left:${c.x}px;top:${c.y}px;width:${c.width}px;z-index:${active ? project.clips.length + 1 : index + 1}">
-   <div class="clip-header"><span class="clip-number">${String(index + 1).padStart(2, "0")}</span><span class="clip-name" title="${esc(c.name)}">${esc(c.name)}</span><button class="scale-badge ${c.scale ? "" : "unset"}" data-card-action="scale" title="Ange eller ändra skala">${c.scale ? `1 px = ${Number((c.scale.mmPerPixel / UNITS[c.scale.unit]).toFixed(3)).toLocaleString("sv-SE")} ${c.scale.unit}` : "Sätt skala"}</button><button data-card-action="properties" title="Klippets egenskaper" aria-label="Klippets egenskaper">${icon("settings")}</button><button data-card-action="copy" title="Kopiera klippet" aria-label="Kopiera klippet">${icon("copy")}</button></div>
+   <div class="clip-header"><span class="clip-number">${String(index + 1).padStart(2, "0")}</span><span class="clip-name" title="${esc(c.name)}">${esc(c.name)}</span><button class="scale-badge ${c.scale ? "" : "unset"}" data-card-action="scale" title="Ange eller ändra skala">${c.scale ? `1 px = ${Number((c.scale.mmPerPixel / UNITS[c.scale.unit]).toFixed(3)).toLocaleString("sv-SE")} ${c.scale.unit}` : "Sätt skala"}</button><button data-card-action="properties" title="Klippets egenskaper" aria-label="Klippets egenskaper">${icon("settings")}</button><button data-card-action="copy" title="Kopiera klippet" aria-label="Kopiera klippet">${icon("copy")}</button><button data-card-action="delete" title="Ta bort klipp" aria-label="Ta bort klipp: ${esc(c.name)}">×</button></div>
    <svg class="drawing" viewBox="${c.crop.x} ${c.crop.y} ${c.crop.w} ${c.crop.h}" width="${c.crop.w}" height="${c.crop.h}" style="cursor:${tool === "select" ? "default" : "crosshair"}" aria-label="${esc(c.name)}"><g class="image-layer" pointer-events="none">${imageMarkup(c)}</g><g class="annotation-layer">${annotationMarkup(c, tool === "select" || editingTool() ? selectionMarkup(c) : null, (c.width / c.crop.w) * view.zoom)}</g><g class="preview-layer" pointer-events="none"></g></svg>
    <div class="clip-resize" title="Ändra klippets storlek på arbetsytan"></div></article>`;
     })
@@ -1305,6 +1305,13 @@ board.addEventListener("click", (event) => {
   const button = event.target.closest("[data-card-action]");
   if (!button) return;
   const card = button.closest(".clip");
+  if (button.dataset.cardAction === "delete") {
+    cancelGesture();
+    activeId = card.dataset.clip;
+    clearSelection();
+    deleteSelected();
+    return;
+  }
   activeId = card.dataset.clip;
   clearSelection();
   const action = button.dataset.cardAction;

@@ -324,6 +324,16 @@ try {
   assert.equal(mixedObjects.find((o) => o.id === "one").fontSize, 24);
   assert.equal(mixedObjects.find((o) => o.id === "two").fontSize, 24);
   assert.equal(mixedObjects.find((o) => o.id === "cross").fontSize, 22);
+  // Pan the card clear of the floating inspector while keeping its selection.
+  await page.mouse.move(200, 600);
+  await page.mouse.wheel(300, 0);
+  await page.locator(".clip [data-card-action=delete]").click();
+  await settled();
+  assert.equal(await page.locator(".clip").count(), 0);
+  assert.equal((await store()).clips.length, 0);
+  await page.locator("[data-action=undo]").click();
+  await settled();
+  assert.deepEqual((await store()).clips[0].objects, mixedObjects);
   assert.deepEqual(errors, []);
   console.log(
     "PASS: category hover, window/crossing selection, bulk style and undo, drawing defaults, mixed text sizes, Move/Copy, Trim/Extend and Escape.",

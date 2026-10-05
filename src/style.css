@@ -263,6 +263,20 @@ button.primary:hover {
   width: 14px;
   height: 14px;
 }
+.clip-header [data-card-action="delete"] {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  line-height: 1;
+  color: #879692;
+}
+.clip-header [data-card-action="delete"]:hover {
+  color: #b35c57;
+  background: #fbecea;
+}
 .clip svg.drawing {
   display: block;
   width: 100%;
